@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">WeatherApp</string>
+    <string name="temperature">Temperature</string>
+    <string name="description">Description</string>
+    <string name="icon">Icon</string>
+    <string name="ok">OK</string>
+    <string name="forecast">Forecast</string>
+    <string name="city">City</string>
+    <string name="defaultCity">Ostrava</string>
+</resources>
