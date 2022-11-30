@@ -3,12 +3,14 @@ package com.example.weatherapp;
 public class ForecastItem {
     private String temp;
     private String time;
+    private String description;
     private int icon;
 
-    public ForecastItem(String temp, String time, int icon) {
+    public ForecastItem(String temp, String time, int icon, String description) {
         this.temp = temp;
         this.time = time;
         this.icon = icon;
+        this.description = description;
     }
 
     public String getTemp() {
@@ -33,6 +35,14 @@ public class ForecastItem {
 
     public void setIcon(int icon) {
         this.icon = icon;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

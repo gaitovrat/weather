@@ -1,6 +1,7 @@
 package com.example.weatherapp;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -29,6 +31,13 @@ public class ForecastFragment extends Fragment {
     private static final String TAG = "all";
     private Utility utility;
     private int count = 0;
+    private final ForecastRecyclerViewAdapter.OnItemClickListener listener = item -> {
+        MainActivity activity = (MainActivity) this.context;
+        if (activity.getOrientation() == Configuration.ORIENTATION_LANDSCAPE) {
+            activity.updateForecast(item);
+        }
+    };
+
     private String city;
     private JSONObject forecast;
     private RequestQueue requestQueue;
@@ -44,9 +53,19 @@ public class ForecastFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         Bundle bundle = getArguments();
-        assert bundle != null;
 
-        this.city = bundle.getString("arg0", getString(R.string.defaultCity));
+        if (context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            this.city = ((MainActivity) context).getCity();
+            if (this.city == null) {
+                this.city = getString(R.string.defaultCity);
+            }
+        } else {
+            if (bundle != null) {
+                this.city = bundle.getString("arg0", getString(R.string.defaultCity));
+            } else {
+                this.city = getString(R.string.defaultCity);
+            }
+        }
     }
 
     @Override
@@ -61,8 +80,9 @@ public class ForecastFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(this.context));
 
         forecastArrayList = new ArrayList<>();
-        forecastRecyclerViewAdapter = new ForecastRecyclerViewAdapter(this.context, forecastArrayList);
+        forecastRecyclerViewAdapter = new ForecastRecyclerViewAdapter(this.context, forecastArrayList, listener);
         recyclerView.setAdapter(forecastRecyclerViewAdapter);
+        recyclerView.addOnItemTouchListener(new RecyclerView.SimpleOnItemTouchListener());
 
         return view;
     }
@@ -117,16 +137,15 @@ public class ForecastFragment extends Fragment {
                 String time = forecast.getJSONArray("list").getJSONObject(i).getString("dt_txt");
                 String description = forecast.getJSONArray("list").getJSONObject(i).getJSONArray("weather").getJSONObject(0).getString("description");
                 String temperature = forecast.getJSONArray("list").getJSONObject(i).getJSONObject("main").getString("temp");
-                String displayTemperature = temperature + " °C; " + description;
                 int resourceId = getResources().getIdentifier(icon, "drawable", this.context.getPackageName());
-                ForecastItem tempForecast = new ForecastItem(displayTemperature, time, resourceId);
+                ForecastItem tempForecast = new ForecastItem(temperature, time, resourceId, description);
                 forecastArrayList.add(tempForecast);
             }
         } catch (JSONException e) {
             Log.e("json", e.getMessage());
         }
 
-        forecastRecyclerViewAdapter = new ForecastRecyclerViewAdapter(this.context, forecastArrayList);
+        forecastRecyclerViewAdapter = new ForecastRecyclerViewAdapter(this.context, forecastArrayList, listener);
         recyclerView.setAdapter(forecastRecyclerViewAdapter);
     }
 

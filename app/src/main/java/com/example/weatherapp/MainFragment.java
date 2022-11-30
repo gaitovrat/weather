@@ -28,8 +28,6 @@ import org.json.JSONObject;
 
 public class MainFragment extends Fragment {
     private static final String TAG = "all";
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
     private Utility utility;
     private Context context;
@@ -140,6 +138,18 @@ public class MainFragment extends Fragment {
         } catch (JSONException e) {
             Log.e("error json", e.getMessage());
         }
+    }
+
+    public void setIcon(int icon) {
+        iconImageView.setImageResource(icon);
+    }
+
+    public void setDescription(String description) {
+        descriptionTextView.setText(description);
+    }
+
+    public void setTemperature(String temperature) {
+        temperatureTextView.setText(temperature);
     }
 
     public void okClick(View view) {
