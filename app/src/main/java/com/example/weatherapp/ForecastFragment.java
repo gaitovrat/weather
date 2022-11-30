@@ -1,13 +1,18 @@
 package com.example.weatherapp;
 
-import androidx.appcompat.app.AppCompatActivity;
+import android.content.Context;
+import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Intent;
-import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -20,9 +25,9 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ForecastActivity extends AppCompatActivity {
+public class ForecastFragment extends Fragment {
     private static final String TAG = "all";
-    private final Utility utility = new Utility(this);
+    private Utility utility;
     private int count = 0;
     private String city;
     private JSONObject forecast;
@@ -30,28 +35,54 @@ public class ForecastActivity extends AppCompatActivity {
     private List<ForecastItem> forecastArrayList;
     private ForecastRecyclerViewAdapter forecastRecyclerViewAdapter;
     private RecyclerView recyclerView;
+    private Context context;
+
+    public ForecastFragment() {}
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_forecast);
 
-        Intent intent = getIntent();
-        city = intent.getStringExtra("City");
+        Bundle bundle = getArguments();
+        assert bundle != null;
 
-        recyclerView = findViewById(R.id.forecast_recycleView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        this.city = bundle.getString("arg0", getString(R.string.defaultCity));
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_forecast, container, false);
+
+        this.utility = new Utility(this.context);
+        this.requestQueue = Volley.newRequestQueue(this.context);
+
+        recyclerView = view.findViewById(R.id.forecast_recycleView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this.context));
+
         forecastArrayList = new ArrayList<>();
-        forecastRecyclerViewAdapter = new ForecastRecyclerViewAdapter(this, forecastArrayList);
+        forecastRecyclerViewAdapter = new ForecastRecyclerViewAdapter(this.context, forecastArrayList);
         recyclerView.setAdapter(forecastRecyclerViewAdapter);
 
-        requestQueue = Volley.newRequestQueue(this);
+        return view;
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+
+        this.context = context;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
         getWeather();
     }
 
-
     @Override
-    protected void onStop() {
+    public void onStop() {
         super.onStop();
 
         if (requestQueue != null) {
@@ -64,15 +95,15 @@ public class ForecastActivity extends AppCompatActivity {
         String url = String.format("https://api.openweathermap.org/data/2.5/forecast?q=%s&appid=670c3aa6c07aaff1a2ad122818c5d0dd&units=metric", givenCity);
 
         JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET, url, null,
-            response -> {
-                try {
-                    forecast = response;
-                    count = forecast.getInt("cnt");
-                    setWeather();
-                } catch (Exception e) {
-                    Log.e("Error", "Weather request error");
-                }
-            }, this.utility::processError
+                response -> {
+                    try {
+                        forecast = response;
+                        count = forecast.getInt("cnt");
+                        setWeather();
+                    } catch (Exception e) {
+                        Log.e("Error", "Weather request error");
+                    }
+                }, this.utility::processError
         );
 
         req.setTag(TAG);
@@ -87,7 +118,7 @@ public class ForecastActivity extends AppCompatActivity {
                 String description = forecast.getJSONArray("list").getJSONObject(i).getJSONArray("weather").getJSONObject(0).getString("description");
                 String temperature = forecast.getJSONArray("list").getJSONObject(i).getJSONObject("main").getString("temp");
                 String displayTemperature = temperature + " °C; " + description;
-                int resourceId = getResources().getIdentifier(icon, "drawable", getPackageName());
+                int resourceId = getResources().getIdentifier(icon, "drawable", this.context.getPackageName());
                 ForecastItem tempForecast = new ForecastItem(displayTemperature, time, resourceId);
                 forecastArrayList.add(tempForecast);
             }
@@ -95,7 +126,13 @@ public class ForecastActivity extends AppCompatActivity {
             Log.e("json", e.getMessage());
         }
 
-        forecastRecyclerViewAdapter = new ForecastRecyclerViewAdapter(this, forecastArrayList);
+        forecastRecyclerViewAdapter = new ForecastRecyclerViewAdapter(this.context, forecastArrayList);
         recyclerView.setAdapter(forecastRecyclerViewAdapter);
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+
+        getWeather();
     }
 }
