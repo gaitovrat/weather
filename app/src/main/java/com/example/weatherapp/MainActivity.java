@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -25,6 +26,7 @@ import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "all";
+    private final Utility utility = new Utility(this);
     private TextView temperatureTextView;
     private TextView descriptionTextView;
     private ImageView iconImageView;
@@ -48,9 +50,8 @@ public class MainActivity extends AppCompatActivity {
         if (isNetworkConnected()) {
             updateWeather();
         } else {
-            noInternet();
+            this.utility.noInternet();
         }
-
     }
 
     @Override
@@ -86,10 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     Log.e("error", "Weather request error");
                 }
-            }, error -> {
-                Log.e("error", "Response code: " + error.networkResponse.statusCode);
-                Toast.makeText(getApplicationContext(), String.valueOf(error.networkResponse.statusCode), Toast.LENGTH_SHORT).show();
-            }
+            }, this.utility::processError
         );
 
         req.setTag(TAG);
@@ -121,11 +119,8 @@ public class MainActivity extends AppCompatActivity {
         if (isNetworkConnected()) {
             updateWeather();
         } else {
-            noInternet();
+            this.utility.noInternet();
         }
-    }
-    private void noInternet() {
-        Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
     }
 
     public void openForecast(View view) {

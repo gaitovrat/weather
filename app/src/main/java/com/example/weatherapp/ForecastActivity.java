@@ -22,6 +22,7 @@ import java.util.List;
 
 public class ForecastActivity extends AppCompatActivity {
     private static final String TAG = "all";
+    private final Utility utility = new Utility(this);
     private int count = 0;
     private String city;
     private JSONObject forecast;
@@ -58,8 +59,7 @@ public class ForecastActivity extends AppCompatActivity {
         }
     }
 
-    private void getWeather()
-    {
+    private void getWeather() {
         String givenCity = city;
         String url = String.format("https://api.openweathermap.org/data/2.5/forecast?q=%s&appid=670c3aa6c07aaff1a2ad122818c5d0dd&units=metric", givenCity);
 
@@ -72,11 +72,7 @@ public class ForecastActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     Log.e("Error", "Weather request error");
                 }
-            }, error -> {
-                Log.e("error", "Response code: " + error.networkResponse.statusCode);
-                Toast.makeText(getApplicationContext(), String.valueOf(error.networkResponse.statusCode), Toast.LENGTH_SHORT).show();
-                onBackPressed();
-            }
+            }, this.utility::processError
         );
 
         req.setTag(TAG);
@@ -96,7 +92,7 @@ public class ForecastActivity extends AppCompatActivity {
                 forecastArrayList.add(tempForecast);
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e("json", e.getMessage());
         }
 
         forecastRecyclerViewAdapter = new ForecastRecyclerViewAdapter(this, forecastArrayList);
